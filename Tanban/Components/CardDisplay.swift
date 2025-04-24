@@ -11,15 +11,15 @@ struct CardDisplay: View {
     @State private var isEditing = false
     @State private var editedTitle: String
     @State private var editedContent: String
-    var isSelected: Bool
+    @Binding var isSelected: Card?
 
     var card: Card
 
-    init(card: Card, isSelected: Bool = false) {
+    init(card: Card, isSelected: Binding<Card?>) {
         self.card = card
         _editedTitle = State(initialValue: card.title)
         _editedContent = State(initialValue: card.content)
-        self.isSelected = isSelected
+        _isSelected = isSelected
     }
 
     var body: some View {
@@ -48,19 +48,33 @@ struct CardDisplay: View {
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.gray.opacity(isSelected ? 0.8 : 0.2))
+            .background(Color.gray.opacity(isSelected == card ? 0.4 : 0.2))
             .cornerRadius(8)
             .shadow(radius: 2)
         }
         .onTapGesture(count: 2) {
             toggleEdit()
         }
+        .simultaneousGesture(
+            TapGesture()
+                .onEnded {
+                    if !isEditing {
+                        if isSelected == card {
+                            isSelected = nil
+                        } else {
+                            isSelected = card
+                        }
+                    }
+                }
+        )
     }
 
     private func toggleEdit() {
         if isEditing {
             card.title = editedTitle
             card.content = editedContent
+        } else {
+            isSelected = nil
         }
         isEditing.toggle()
     }

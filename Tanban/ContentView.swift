@@ -12,6 +12,11 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var kanbans: [Kanban]
     @State private var selectedKanban: Kanban?
+    @State private var selectedCard: Card?
+
+    init() {
+        _kanbans = Query(sort: \.timestamp, order: .reverse)
+    }
 
     var body: some View {
         NavigationSplitView {
@@ -31,7 +36,7 @@ struct ContentView: View {
                     }
                 }
                 ToolbarItem {
-                    Button(action: deleteSelectedKanban) {
+                    Button(action: deleteKanban) {
                         Label("Delete Item", systemImage: "trash")
                     }
                     .disabled(selectedKanban == nil)
@@ -44,7 +49,7 @@ struct ContentView: View {
                         HStack(spacing: 6) {
                             ForEach(kanban.columns.sorted(by: { $0.position < $1.position })) { column in
                                 VStack {
-                                    ColumnDisplay(column: column)
+                                    ColumnDisplay(column: column, selectedCard: $selectedCard)
                                 }
                                 .frame(width: geometry.size.width / CGFloat(kanban.columns.count) - 8, height: geometry.size.height - 12)
                                 .background(
@@ -76,6 +81,12 @@ struct ContentView: View {
                     }
                 }
             }
+            ToolbarItem {
+                Button(action: deleteCard) {
+                    Label("Delete Card", systemImage: "trash.square")
+                }
+                .disabled(selectedCard == nil)
+            }
         }
     }
 
@@ -86,18 +97,14 @@ struct ContentView: View {
         }
     }
 
-    private func deleteSelectedKanban() {
+    private func deleteKanban() {
         if let kanban = selectedKanban {
-            deleteItems(id: kanban.id)
-            selectedKanban = nil
-        }
-    }
-
-    private func deleteItems(id: UUID) {
-        withAnimation {
-            if let kanban = kanbans.first(where: { $0.id == id }) {
-                modelContext.delete(kanban)
+            withAnimation {
+                if let kanban = kanbans.first(where: { $0.id == kanban.id }) {
+                    modelContext.delete(kanban)
+                }
             }
+            selectedKanban = nil
         }
     }
 
@@ -106,6 +113,18 @@ struct ContentView: View {
             let newCard = Card(title: "New Card", content: "", position: column.cards.last?.position ?? 0 + 1)
             modelContext.insert(newCard)
             column.cards.append(newCard)
+        }
+    }
+
+    private func deleteCard() {
+        if let card = selectedCard, let kanban = selectedKanban {
+            withAnimation {
+                if let column = kanban.columns.first(where: { $0.cards.contains(where: { $0.id == card.id }) }) {
+                    modelContext.delete(card)
+                    column.cards.removeAll(where: { $0.id == card.id })
+                }
+            }
+            selectedCard = nil
         }
     }
 }
