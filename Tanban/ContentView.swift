@@ -13,6 +13,8 @@ struct ContentView: View {
     @Query private var kanbans: [Kanban]
     @State private var selectedKanban: Kanban?
     @State private var selectedCard: Card?
+    @State private var isEditingKanban = false
+    @State private var editedKanbanTitle: String = ""
 
     init() {
         _kanbans = Query(sort: \.timestamp, order: .reverse)
@@ -44,26 +46,45 @@ struct ContentView: View {
             }
         } detail: {
             if let kanban = selectedKanban {
-                HStack {
-                    GeometryReader { geometry in
-                        HStack(spacing: 6) {
-                            ForEach(kanban.columns.sorted(by: { $0.position < $1.position })) { column in
-                                VStack {
-                                    ColumnDisplay(column: column, selectedCard: $selectedCard)
+                VStack {
+                    HStack {
+                        if isEditingKanban {
+                            TextField("Kanban Title", text: $editedKanbanTitle)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .onSubmit {
+                                    toggleEditKanban()
                                 }
-                                .frame(width: geometry.size.width / CGFloat(kanban.columns.count) - 8, height: geometry.size.height - 12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.clear)
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(column.color.color, lineWidth: 2)
-                                )
-                            }
+                        } else {
+                            Text(kanban.title)
+                                .font(.largeTitle)
                         }
-                        .padding(.top, 6)
-                        .padding(.horizontal, 6)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .onTapGesture(count: 2, perform: toggleEditKanban)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 12)
+
+                    HStack {
+                        GeometryReader { geometry in
+                            HStack(spacing: 6) {
+                                ForEach(kanban.columns.sorted(by: { $0.position < $1.position })) { column in
+                                    VStack {
+                                        ColumnDisplay(column: column, selectedCard: $selectedCard)
+                                    }
+                                    .frame(width: geometry.size.width / CGFloat(kanban.columns.count) - 8, height: geometry.size.height - 12)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(Color.clear)
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(column.color.color, lineWidth: 2)
+                                    )
+                                }
+                            }
+                            .padding(.top, 6)
+                            .padding(.horizontal, 6)
+                        }
                     }
                 }
             } else {
@@ -88,6 +109,21 @@ struct ContentView: View {
                 .disabled(selectedCard == nil)
             }
         }
+    }
+
+    private func toggleEditKanban() {
+        if isEditingKanban {
+            // Save changes
+            if let kanban = selectedKanban {
+                kanban.title = editedKanbanTitle
+            }
+        } else {
+            // Start editing
+            if let kanban = selectedKanban {
+                editedKanbanTitle = kanban.title
+            }
+        }
+        isEditingKanban.toggle()
     }
 
     private func addKanban() {
