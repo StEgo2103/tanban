@@ -5,55 +5,107 @@
 //  Created by Luca on 21/04/2025.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @Query private var kanbans: [Kanban]
+    @State private var selectedKanban: Kanban?
 
     var body: some View {
         NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+            List(selection: $selectedKanban) {
+                ForEach(kanbans) { kanban in
+                    NavigationLink(value: kanban) {
+                        Text(kanban.title)
+                            .font(.headline)
                     }
                 }
-                .onDelete(perform: deleteItems)
             }
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
+            .navigationSplitViewColumnWidth(min: 220, ideal: 240)
             .toolbar {
                 ToolbarItem {
-                    Button(action: addItem) {
+                    Button(action: addKanban) {
                         Label("Add Item", systemImage: "plus")
                     }
                 }
+                ToolbarItem {
+                    Button(action: deleteSelectedKanban) {
+                        Label("Delete Item", systemImage: "trash")
+                    }
+                    .disabled(selectedKanban == nil)
+                }
             }
         } detail: {
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+            if let kanban = selectedKanban {
+                HStack {
+                    GeometryReader { geometry in
+                        HStack(spacing: 6) {
+                            ForEach(kanban.columns.sorted(by: { $0.position < $1.position })) { column in
+                                VStack {
+                                    ColumnDisplay(column: column)
+                                }
+                                .frame(width: geometry.size.width / CGFloat(kanban.columns.count) - 8, height: geometry.size.height - 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.clear)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(column.color.color, lineWidth: 2)
+                                )
+                            }
+                        }
+                        .padding(.top, 6)
+                        .padding(.horizontal, 6)
+                    }
+                }
+            } else {
+                Text("Select an item or create one")
+                    .font(.largeTitle)
+                    .foregroundStyle(.secondary)
+            }
+        }.toolbar {
+            ToolbarItem {
+                if selectedKanban != nil {
+                    Button(action: {
+                        addCard(to: selectedKanban!.columns.first(where: { $0.title == "To Do" })!)
+                    }) {
+                        Label("New Card", systemImage: "plus.square")
+                    }
+                }
             }
         }
     }
-}
 
-#Preview {
-    ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+    private func addKanban() {
+        withAnimation {
+            let newKanban = Kanban(title: "New Kanban", timestamp: Date())
+            modelContext.insert(newKanban)
+        }
+    }
+
+    private func deleteSelectedKanban() {
+        if let kanban = selectedKanban {
+            deleteItems(id: kanban.id)
+            selectedKanban = nil
+        }
+    }
+
+    private func deleteItems(id: UUID) {
+        withAnimation {
+            if let kanban = kanbans.first(where: { $0.id == id }) {
+                modelContext.delete(kanban)
+            }
+        }
+    }
+
+    private func addCard(to column: Column) {
+        withAnimation {
+            let newCard = Card(title: "New Card", content: "", position: column.cards.last?.position ?? 0 + 1)
+            modelContext.insert(newCard)
+            column.cards.append(newCard)
+        }
+    }
 }

@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		814701292DBA2E5D00952620 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 814701282DBA2E5D00952620 /* README.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		815E9DD52DB71BF6008983D2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		814701282DBA2E5D00952620 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		815E9DC42DB71BF5008983D2 /* Tanban.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tanban.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		815E9DD42DB71BF6008983D2 /* TanbanTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TanbanTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		815E9DDE2DB71BF6008983D2 /* TanbanUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TanbanUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,6 +80,7 @@
 		815E9DBB2DB71BF5008983D2 = {
 			isa = PBXGroup;
 			children = (
+				814701282DBA2E5D00952620 /* README.md */,
 				815E9DC62DB71BF5008983D2 /* Tanban */,
 				815E9DD72DB71BF6008983D2 /* TanbanTests */,
 				815E9DE12DB71BF6008983D2 /* TanbanUITests */,
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				814701292DBA2E5D00952620 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
