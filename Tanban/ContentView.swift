@@ -16,6 +16,8 @@ struct ContentView: View {
     @State private var isEditingKanban = false
     @State private var editedKanbanTitle: String = ""
 
+    @State private var showAlertConfimDelete: Bool = false
+
     init() {
         _kanbans = Query(sort: \.timestamp, order: .reverse)
     }
@@ -38,10 +40,20 @@ struct ContentView: View {
                     }
                 }
                 ToolbarItem {
-                    Button(action: deleteKanban) {
+                    Button(action: {
+                        showAlertConfimDelete.toggle()
+                    }) {
                         Label("Delete Item", systemImage: "trash")
                     }
                     .disabled(selectedKanban == nil)
+                    .alert("Delete Kanban", isPresented: $showAlertConfimDelete, actions: {
+                        Button("Delete", role: .destructive) {
+                            deleteKanban()
+                        }
+                        Button("Cancel", role: .cancel) {}
+                    }, message: {
+                        Text("Are you sure you want to delete this kanban?")
+                    })
                 }
             }
         } detail: {
@@ -113,12 +125,10 @@ struct ContentView: View {
 
     private func toggleEditKanban() {
         if isEditingKanban {
-            // Save changes
             if let kanban = selectedKanban {
                 kanban.title = editedKanbanTitle
             }
         } else {
-            // Start editing
             if let kanban = selectedKanban {
                 editedKanbanTitle = kanban.title
             }
